@@ -22,7 +22,11 @@ Untracked time is folded into the next ticket, and lunch is booked as unbilled. 
 
 ## Setup
 
-1. Copy this folder to `%USERPROFILE%\.claude\skills\timesheet`.
+1. Clone the repo into your Claude Code skills folder. The folder must be named `timesheet`:
+   ```powershell
+   git clone https://github.com/Nicholas-Dippenaar/TimeSheetAssistant.git "$env:USERPROFILE\.claude\skills\timesheet"
+   ```
+   The repo is private, so ask for access if the clone fails.
 2. Run `pwsh -File "$env:USERPROFILE\.claude\skills\timesheet\Install-Timesheet.ps1"` and answer the questions. Press Enter to accept the value in [brackets]. It asks for:
    - where to save your timesheets
    - **daily** or **weekly** reports
@@ -35,6 +39,14 @@ Untracked time is folded into the next ticket, and lunch is booked as unbilled. 
 3. Test it now: `pwsh -File "$env:USERPROFILE\.claude\skills\timesheet\Invoke-Timesheet.ps1"`. You get a Windows notification when it's done; click it to open the timesheet.
 
 To change any setting later, run the installer again.
+
+## Updating
+
+```powershell
+git -C "$env:USERPROFILE\.claude\skills\timesheet" pull
+```
+
+Your `config.json` is ignored by git, so updates never overwrite your settings. If an update adds new settings, run `Install-Timesheet.ps1` again to set them.
 
 ## Where to find your timesheets
 
@@ -62,7 +74,7 @@ In the folder you chose during setup (`outputRoot`), in a sub-folder for the mon
 
 The installer writes this file for you. If you edit it by hand, run `Install-Timesheet.ps1 -NonInteractive` afterwards to check it and update the schedule.
 
-`config.json` is personal: don't share it or commit it.
+`config.json` is personal. It's listed in `.gitignore`, so don't force-add it or share it.
 
 ## How it behaves
 
