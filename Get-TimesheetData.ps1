@@ -63,7 +63,7 @@ Add-Line
 
 # --- Pull requests -------------------------------------------------------------------------
 function Get-GitHubPullRequests([string] $ghRepo) {
-  $json = gh pr list -R $ghRepo --author '@me' --state all --limit $maxPullRequests `
+  $json = $null | gh pr list -R $ghRepo --author '@me' --state all --limit $maxPullRequests `
     --search "updated:>=$($start.ToString('yyyy-MM-dd', $inv))" --json number,title,headRefName,state 2>$null
   if ($LASTEXITCODE -ne 0) { throw 'gh failed' }
   foreach ($pr in @($json | ConvertFrom-Json)) {
@@ -72,10 +72,17 @@ function Get-GitHubPullRequests([string] $ghRepo) {
 }
 
 function Get-AzureDevOpsPullRequests([string] $org, [string] $project, [string] $repoName) {
+  # Scheduled runs have no one to answer prompts: empty stdin and no dynamic extension install,
+  # otherwise az waits forever asking to install the azure-devops extension.
+  $env:AZURE_EXTENSION_USE_DYNAMIC_INSTALL = 'no'
+  $env:AZURE_CORE_ONLY_SHOW_ERRORS = 'true'
+  if (-not (Get-Command az -ErrorAction SilentlyContinue)) { throw 'az not installed' }
+  $null | az extension show --name azure-devops --output none 2>$null
+  if ($LASTEXITCODE -ne 0) { throw 'azure-devops extension missing - run: az extension add --name azure-devops' }
   $creator = $config.git.azureDevOpsCreator
-  if (-not $creator) { $creator = az account show --query user.name -o tsv 2>$null }
-  if (-not $creator) { throw 'az not logged in' }
-  $json = az repos pr list --organization "https://dev.azure.com/$org" --project $project --repository $repoName `
+  if (-not $creator) { $creator = $null | az account show --query user.name -o tsv 2>$null }
+  if (-not $creator) { throw 'az not logged in - run: az login' }
+  $json = $null | az repos pr list --organization "https://dev.azure.com/$org" --project $project --repository $repoName `
     --creator $creator --status all --top $maxPullRequests --output json 2>$null
   if ($LASTEXITCODE -ne 0) { throw 'az failed' }
   foreach ($pr in @($json | ConvertFrom-Json)) {

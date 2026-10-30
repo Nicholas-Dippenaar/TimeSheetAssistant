@@ -72,7 +72,8 @@ $toastXml
   }
 }
 
-$logFile = Join-Path $logDir ("{0}.log" -f (Get-Date).ToString('yyyy-MM-dd_HHmm', $inv))
+# Seconds + PID so two runs started together never fight over one log file.
+$logFile = Join-Path $logDir ("{0}_{1}.log" -f (Get-Date).ToString('yyyy-MM-dd_HHmmss', $inv), $PID)
 $notify = $true
 Start-Transcript -Path $logFile | Out-Null
 try {
