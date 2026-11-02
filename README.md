@@ -13,7 +13,7 @@ Untracked time is folded into the next ticket, and lunch is booked as unbilled. 
 ## Requirements
 
 - Windows with [PowerShell 7](https://aka.ms/powershell) (`pwsh`)
-- [Claude Code](https://claude.com/claude-code), logged in with your claude.ai account
+- [Claude Code](https://claude.com/claude-code), logged in with your claude.ai account. Using the Claude desktop app instead? See [Using the Claude desktop app instead of the CLI](#using-the-claude-desktop-app-instead-of-the-cli).
 - `git`
 - Optional, for pull request titles:
   - GitHub: [`gh`](https://cli.github.com), logged in with `gh auth login`
@@ -39,6 +39,42 @@ Untracked time is folded into the next ticket, and lunch is booked as unbilled. 
 3. Test it now: `pwsh -File "$env:USERPROFILE\.claude\skills\timesheet\Invoke-Timesheet.ps1"`. You get a Windows notification when it's done; click it to open the timesheet.
 
 To change any setting later, run the installer again.
+
+## Using the Claude desktop app instead of the CLI
+
+The skill runs in the **Code** tab of the Claude desktop app, which reads skills from the same `%USERPROFILE%\.claude\skills` folder as the CLI. A normal chat in the app or on claude.ai can't use it, because it can't reach your git repos or local files.
+
+The scheduled report needs the `claude` command, which the app doesn't install. The installer stops if `claude` isn't found. You have two options.
+
+### Option A: install the CLI as well (recommended)
+
+This gives you the automatic daily or weekly report.
+
+1. Install the CLI:
+   ```powershell
+   irm https://claude.ai/install.ps1 | iex
+   ```
+2. Open a new terminal, run `claude` once and log in with the same claude.ai account you use in the app. Then type `/exit`.
+3. Follow [Setup](#setup) above.
+
+You can keep using the app day to day. The scheduled task uses the CLI in the background.
+
+### Option B: app only, on demand
+
+With this option there's no schedule and no notifications. You ask for a timesheet when you want one.
+
+1. Clone the repo as in step 1 of [Setup](#setup). `git` and PowerShell 7 are still required.
+2. Create your settings by copying the example:
+   ```powershell
+   Copy-Item "$env:USERPROFILE\.claude\skills\timesheet\config.example.json" "$env:USERPROFILE\.claude\skills\timesheet\config.json"
+   ```
+   Open `config.json` and fill it in (see [config.json](#configjson) below). At a minimum, replace `<you>` in `outputRoot` and set `git.repoRoots`. The `schedule` and `notifications` settings aren't used.
+3. Restart the app so it picks up the new skill.
+4. In the **Code** tab, open any folder and ask for "my timesheet for this week" (or "for today"). Claude will ask permission to run `Get-TimesheetData.ps1` and to save the file. Allow both.
+
+For meetings, enable the Microsoft 365 connector in claude.ai settings, as with the CLI.
+
+If you later install the CLI, run `Install-Timesheet.ps1` to add the schedule. It keeps your existing `config.json`.
 
 ## Updating
 
